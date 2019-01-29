@@ -66,13 +66,13 @@ module.exports = {
             chunks: 'initial',
             reuseExistingChunk: true
           },
-          element: {
-            name: 'element',
-            test: /[\\/]node_modules[\\/]element-ui[\\/]/,
-            chunks: 'initial',
-            // 默认组的优先级为负数，以允许任何自定义缓存组具有更高的优先级（默认值为0）
-            priority: -30
-          }
+          // element: {
+          //   name: 'element',
+          //   test: /[\\/]node_modules[\\/]element-ui[\\/]/,
+          //   chunks: 'initial',
+          //   // 默认组的优先级为负数，以允许任何自定义缓存组具有更高的优先级（默认值为0）
+          //   priority: -30
+          // }
         }
       })
     )

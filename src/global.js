@@ -23,8 +23,8 @@ Vue.config.lang = lang
 // }
 
 /* ------------------------Vue Global Components------------------------------ */
-import ElementUI from 'element-ui'
-Vue.use(ElementUI)
+// import ElementUI from 'element-ui'
+// Vue.use(ElementUI)
 
 // import Markdown from '@components/markdown/Index'
 // Vue.component('Markdown', Markdown)

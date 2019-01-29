@@ -1,39 +1,45 @@
 <!-- @format -->
 
 <template>
-  <section class="page-module explore-more">
+  <section class="page-module">
     <div class="module-content">
-      <div class="panel panel-default">
-        <div class="panel-body">
-          <div class="back-tip">
-            <h3>汪小鱼的主页</h3>
-          </div>
-          <el-table :data="tableData" border stripe highlight-current-row>
-            <el-table-column prop="name" label="项目名称" width="120">
-            </el-table-column>
-            <el-table-column prop="address" label="在线地址" width="210">
-              <template slot-scope="scope">
-                <a :href="scope.row.address"
-                  target="_blank" rel="noreferrer noopener">
-                  {{ scope.row.address }}
-                </a>
-              </template>
-            </el-table-column>
-            <el-table-column prop="description" label="作品描述"
-              show-overflow-tooltip min-width="160">
-              <template slot-scope="scope">
-                <span v-html="scope.row.description"></span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="date" label="上线日期" width="100">
-            </el-table-column>
-            <el-table-column label="操作" width="180">
-              <span>-</span>
-            </el-table-column>
-          </el-table>
 
-        </div>
-      </div>
+    <div class="header">
+    <h1>汪小鱼</h1>
+    </div>
+
+    <div class="row">
+    <div class="col-3 col-m-3 menu">
+    <ul>
+    <li @click="linkBlog">博客</li>
+    <li>知乎</li>
+    <li>掘金</li>
+    <li @click="linkGitHub">GitHub</li>
+    </ul>
+    </div>
+
+    <div class="col-6 col-m-9">
+    <h1>欢迎你！</h1>
+    <p>这里是汪小鱼的空间...</p>
+    </div>
+
+    <div class="col-3 col-m-12">
+    <div class="aside">
+    <h2>What?</h2>
+    <p>Chania is a city on the island of Crete.</p>
+    <h2>Where?</h2>
+    <p>Crete is a Greek island in the Mediterranean Sea.</p>
+    <h2>How?</h2>
+    <p>You can reach Chania airport from all over Europe.</p>
+    </div>
+    </div>
+
+    </div>
+
+    <div class="footer">
+    <p>© 2016-2019 coderw.cn 版权所有 ICP证：辽ICP备16009639号-1</p>
+    </div>
+
 
     </div>
   </section>
@@ -84,81 +90,113 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val
       // console.log(`当前页: ${val}`)
-    }
+    },
     /* ----------------------------On Click Event---------------------------- */
+    linkBlog(){
+      window.location.href = 'http://blog.coderw.cn'
+    },
+    linkGitHub(){
+      window.location.href = 'https://github.com/dalewang1995'
+    },
   }
 }
 </script>
 
 <style lang="scss">
-.explore-more {
-  width: 100%;
-  max-width: 56rem;
-  height: 100vh;
-  @include flex-box-center(row);
-  margin: 2 * $size-factor auto;
-  .module-content {
-    width: 100%;
-    .back-tip {
-      margin: 2 * $size-factor auto;
+* {
+    box-sizing: border-box;
+}
+.row {
+  height: calc(100vh - 110px);
+}
+.row:after {
+    content: "";
+    clear: both;
+    display: block;
+}
+[class*="col-"] {
+    float: left;
+    padding: 15px;
+}
+html {
+    font-family: "Lucida Sans", sans-serif;
+}
+.header {
+    background-color: #373d41;
+    color: #ffffff;
+    padding: 15px;
+}
+.menu ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.menu li {
+    padding: 8px;
+    margin-bottom: 7px;
+    background-color: rgba(255,255,255,.9);
+    color: #373d41;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    transition: all .4s;
+    &:hover{
+      background-color: #fff;
+      box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
     }
-    .table-operate {
-      margin-top: 15px;
-    }
-    .operation-area {
-      @include flex-box-center(row);
-    }
-    .heart {
-      content: '';
-      display: block;
-      width: 20px;
-      min-height: 16px;
-      position: relative;
-      transform-origin: 50% 50% 0;
-    }
-    .heart:before {
-      content: '';
-      display: block;
-      width: 10px;
-      height: 16px;
-      position: absolute;
-      top: 0;
-      left: 10px;
-      border-radius: 10px 10px 0 0;
-      background: #f05b72;
-      transform: rotateZ(-45deg);
-      transform-origin: 0 100% 0;
-    }
-    .heart:after {
-      content: '';
-      display: block;
-      width: 10px;
-      height: 16px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      border-radius: 10px 10px 0 0;
-      background: #f05b72;
-      transform: rotateZ(45deg);
-      transform-origin: 100% 100% 0;
-    }
-    .heart-link {
-      display: inline-block;
-      margin-left: 15px;
-      padding: 10px 20px;
-      border-radius: 4px;
-      background-color: $brand;
-      vertical-align: top;
-    }
-  }
 }
 
-@media (max-width: 768px) {
-  .explore-more {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    display: block;
-  }
+.aside {
+    background-color: #fff;
+    cursor: pointer;
+    padding: 15px;
+    color: #ffffff;
+    text-align: center;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    transition: all .4s;
+    &:hover{
+      box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
+    }
 }
+.footer {
+    background-color: #373d41;
+    color: #ffffff;
+    text-align: center;
+    font-size: 12px;
+    padding: 15px;
+}
+/* For mobile phones: */
+[class*="col-"] {
+    width: 100%;
+}
+@media only screen and (min-width: 600px) {
+    /* For tablets: */
+    .col-m-12 {width: 8.33%;}
+    .col-m-2 {width: 16.66%;}
+    .col-m-3 {width: 25%;}
+    .col-m-4 {width: 33.33%;}
+    .col-m-5 {width: 41.66%;}
+    .col-m-6 {width: 50%;}
+    .col-m-7 {width: 58.33%;}
+    .col-m-8 {width: 66.66%;}
+    .col-m-9 {width: 75%;}
+    .col-m-10 {width: 83.33%;}
+    .col-m-11 {width: 91.66%;}
+    .col-m-12 {width: 100%;}
+}
+@media only screen and (min-width: 768px) {
+    /* For desktop: */
+    .col-1 {width: 8.33%;}
+    .col-2 {width: 16.66%;}
+    .col-3 {width: 25%;}
+    .col-4 {width: 33.33%;}
+    .col-5 {width: 41.66%;}
+    .col-6 {width: 50%;}
+    .col-7 {width: 58.33%;}
+    .col-8 {width: 66.66%;}
+    .col-9 {width: 75%;}
+    .col-10 {width: 83.33%;}
+    .col-11 {width: 91.66%;}
+    .col-12 {width: 100%;}
+}
+
 </style>
