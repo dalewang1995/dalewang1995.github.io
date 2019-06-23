@@ -10,11 +10,11 @@
 
     <div class="row">
     <div class="col-3 col-m-3 menu">
-    <ul>
+    <ul class="link-content">
     <li @click="linkBlog">博客</li>
-    <li>知乎</li>
-    <li>掘金</li>
+    <li><a href="https://juejin.im/user/5b5f2271e51d451a244bfb96/posts">掘金</a></li>
     <li @click="linkGitHub">GitHub</li>
+    <li>微博</li>
     </ul>
     </div>
 
@@ -93,7 +93,7 @@ export default {
     },
     /* ----------------------------On Click Event---------------------------- */
     linkBlog(){
-      window.location.href = 'http://blog.coderw.cn'
+      window.location.href = 'https://dalewang1995.github.io'
     },
     linkGitHub(){
       window.location.href = 'https://github.com/dalewang1995'
@@ -156,6 +156,9 @@ html {
     &:hover{
       box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
     }
+}
+.link-content li {
+  cursor:pointer;
 }
 .footer {
     background-color: #373d41;
