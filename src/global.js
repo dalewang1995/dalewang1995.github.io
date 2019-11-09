@@ -1,14 +1,14 @@
 /** @format */
 
 import Vue from 'vue'
-import Cookies from 'js-cookie'
+// import Cookies from 'js-cookie'
 // import Filters from './filters'
 
 /* ------------------------Vue Global Config------------------------------ */
 Vue.config.productionTip = false
 
-const lang = Cookies.get('lang') || 'en'
-Vue.config.lang = lang
+// const lang = Cookies.get('lang') || 'en'
+// Vue.config.lang = lang
 
 /* ------------------------Vue Global Variable------------------------------ */
 // import { $apis, $utils, $document, $auth, $lodash } from '@helper'

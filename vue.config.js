@@ -1,5 +1,10 @@
 const path = require('path')
 const fs = require('fs')
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+//     .BundleAnalyzerPlugin;
+
+const isProd = process.env.NODE_ENV === 'production'
 
 function resolveRealPath(dir) {
   return path.join(__dirname, dir)
@@ -17,6 +22,22 @@ module.exports = {
         data: loadGlobalStyles()
       }
     }
+  },
+  configureWebpack:config => {
+    // plugins: [new BundleAnalyzerPlugin()]
+
+    if (isProd) {
+      config.plugins.push(
+        new CompressionWebpackPlugin({
+          // 正在匹配需要压缩的文件后缀
+          test: /\.(js|css|svg|woff|ttf|json|html)$/,
+          // 大于10kb的会压缩
+          threshold: 10240
+          // 其余配置查看compression-webpack-plugin
+        })
+      )
+    }
+
   },
   // tweak internal webpack configuration.
   // see https://github.com/vuejs/vue-cli/blob/dev/docs/webpack.md

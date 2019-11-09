@@ -12,9 +12,9 @@
     <div class="col-3 col-m-3 menu">
     <ul class="link-content">
     <li @click="linkBlog">博客</li>
-    <li><a href="https://juejin.im/user/5b5f2271e51d451a244bfb96/posts">掘金</a></li>
+    <li @click="linkJueJin">掘金</li>
     <li @click="linkGitHub">GitHub</li>
-    <li>微博</li>
+    <!-- <li>微博</li> -->
     </ul>
     </div>
 
@@ -25,12 +25,7 @@
 
     <div class="col-3 col-m-12">
     <div class="aside">
-    <h2>What?</h2>
-    <p>Chania is a city on the island of Crete.</p>
-    <h2>Where?</h2>
-    <p>Crete is a Greek island in the Mediterranean Sea.</p>
-    <h2>How?</h2>
-    <p>You can reach Chania airport from all over Europe.</p>
+      <h3>读更多好书，写更酷的代码，做灵魂有趣的人。</h3>
     </div>
     </div>
 
@@ -93,11 +88,15 @@ export default {
     },
     /* ----------------------------On Click Event---------------------------- */
     linkBlog(){
-      window.location.href = 'https://dalewang1995.github.io'
+      window.location.href = 'https://dalewang1995.github.io/Blog-VuePress/'
     },
     linkGitHub(){
       window.location.href = 'https://github.com/dalewang1995'
     },
+    linkJueJin(){
+       window.location.href = 'https://juejin.im/user/5b5f2271e51d451a244bfb96/posts'
+       
+    }
   }
 }
 </script>
@@ -148,7 +147,7 @@ html {
     background-color: #fff;
     cursor: pointer;
     padding: 15px;
-    color: #ffffff;
+    // color: #ffffff;
     text-align: center;
     font-size: 14px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);

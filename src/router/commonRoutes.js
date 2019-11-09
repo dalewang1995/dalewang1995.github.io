@@ -14,7 +14,7 @@ export default [
       title: '汪小鱼',
       ignoreAuth: true
     },
-    component: resolve => require(['@pages/Homepage'], resolve)
+    component: ()=>import('@pages/Homepage')
   },
   // {
   //   path: '/upload',
