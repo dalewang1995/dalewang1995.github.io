@@ -16,6 +16,7 @@ function loadGlobalStyles() {
 }
 
 module.exports = {
+  productionSourceMap:false,
   css: {
     loaderOptions: {
       sass: {

@@ -14,6 +14,7 @@
     <li @click="linkBlog">博客</li>
     <li @click="linkJueJin">掘金</li>
     <li @click="linkGitHub">GitHub</li>
+    <!-- <li @click="alertTips">alert</li> -->
     <!-- <li>微博</li> -->
     </ul>
     </div>
@@ -32,7 +33,7 @@
     </div>
 
     <div class="footer">
-    <p>© 2016-2019 coderw.cn 版权所有 ICP证：辽ICP备16009639号-1</p>
+    <p>© 2016-{{year}} coderw.cn 版权所有  <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010502040072">ICP证：辽ICP备16009639号-1</a></p>
     </div>
 
 
@@ -59,6 +60,7 @@ export default {
           date: '2019-01-15'
         }
       ],
+      year:new Date().getFullYear(),
       currentPage: 1,
       currentRowIndex: -1
     }
@@ -96,6 +98,11 @@ export default {
     linkJueJin(){
        window.location.href = 'https://juejin.im/user/5b5f2271e51d451a244bfb96/posts'
        
+    },
+    alertTips(){
+        this.$Alert.info({
+          content: '我是提示信息 1'
+        });
     }
   }
 }
