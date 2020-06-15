@@ -33,7 +33,7 @@
     </div>
 
     <div class="footer">
-    <p>© 2016-{{year}} coderw.cn 版权所有  <a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010502040072">ICP证：辽ICP备16009639号-1</a></p>
+    <p>© 2016-{{year}} coderw.cn 版权所有  &nbsp;<a class="link" href="http://www.beian.miit.gov.cn/state/outPortal/loginPortal.action">辽ICP备16009639号</a></p>
     </div>
 
 
@@ -172,6 +172,9 @@ html {
     text-align: center;
     font-size: 12px;
     padding: 15px;
+    .link {
+      color: #ffffff;
+    }
 }
 /* For mobile phones: */
 [class*="col-"] {
