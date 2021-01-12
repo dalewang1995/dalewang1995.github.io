@@ -14,31 +14,28 @@ jobs:
       - name: Checkout
         # 使用action库  actions/checkout获取源码
         uses: actions/checkout@master
-      # 安装Node13
-      - name: use Node.js
+      # 打包构建
+      - name: Build
         # 使用action库  actions/setup-node安装node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@master
         with:
           node-version: 10.16.0
-      # 安装依赖
-      - name: npm install
-        run: npm install
-      # 打包
-      - name: npm build
-        run: npm run build
+
+      - run: npm install
+      - run: npm run build
       # 部署到阿里云
       - name: Deploy to Aliyun
         uses: easingthemes/ssh-deploy@v2.1.1
         env:
           # 私钥
-          SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.TOKEN }}
           # scp参数
           ARGS: "-avzr --delete"
           # 源目录，编译后生成的文件目录
           SOURCE: "./dist"
           # 服务器ip：换成你的服务器IP
-          REMOTE_HOST: "39.97.247.51"
+          REMOTE_HOST: ${{ secrets.HOST }}
           # 用户
-          REMOTE_USER: "root"
+          REMOTE_USER: ${{ secrets.USERNAME }}
           # 目标地址 你在服务器上部署代码的地方
           TARGET: "/usr/share/nginx/html_test"
