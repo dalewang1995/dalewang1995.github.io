@@ -1,12 +1,16 @@
+/*
+ * @Author: 汪小鱼
+ * @Date: 2021-01-11 23:08:55
+ */
 /** @format */
 
 export default [
-  // {
-  //   path: '/homepage',
-  //   meta: {
-  //     ignoreAuth: true,
-  //     title: '发现更多'
-  //   },
-  //   component: resolve => require(['@pages/Homepage'], resolve)
-  // }
+  {
+    path: '/tool',
+    meta: {
+      ignoreAuth: true,
+      title: '小鱼的工具箱'
+    },
+    component: ()=>import('../../pages/ToolPage.vue')
+  }
 ]

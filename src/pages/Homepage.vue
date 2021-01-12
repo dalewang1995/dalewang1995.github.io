@@ -10,13 +10,18 @@
 
     <div class="row">
     <div class="col-3 col-m-3 menu">
-    <ul class="link-content">
-    <li @click="linkBlog">博客</li>
-    <li @click="linkJueJin">掘金</li>
-    <li @click="linkGitHub">GitHub</li>
-    <!-- <li @click="alertTips">alert</li> -->
-    <!-- <li>微博</li> -->
-    </ul>
+      <ul class="link-content block-item">
+        <li @click="linkBlog">博客</li>
+        <li @click="linkJueJin">掘金</li>
+        <li @click="linkGitHub">GitHub</li>
+      </ul>
+
+      <ul class="link-content block-item item-margin">
+        <div>小鱼的工具箱</div>
+        <li @click="linkUrlTranslate">URL 转码</li>
+        <li>URL 转二维码- 开发中</li>
+        <li>开发中</li>
+      </ul>
     </div>
 
     <div class="col-6 col-m-9">
@@ -45,7 +50,6 @@
 
 export default {
   name: 'HomePage',
-  props: {},
   data() {
     return {
       title: '发现更多',
@@ -103,6 +107,11 @@ export default {
         this.$Alert.info({
           content: '我是提示信息 1'
         });
+    },
+    linkUrlTranslate(){
+      this.$router.push({
+        path:'/tool'
+      })
     }
   }
 }
@@ -125,7 +134,8 @@ export default {
     padding: 15px;
 }
 html {
-    font-family: "Lucida Sans", sans-serif;
+    background-color: #f6f6f6;
+    font-family: menlo,monospace, Tahoma,"微软雅黑","幼圆";
 }
 .header {
     background-color: #373d41;
@@ -180,6 +190,18 @@ html {
 [class*="col-"] {
     width: 100%;
 }
+
+.block-item {
+  max-width: 230px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(18,18,18,.1);
+}
+
+.item-margin {
+  margin-top: 20px !important;
+}
+
+
 @media only screen and (min-width: 600px) {
     /* For tablets: */
     .col-m-12 {width: 8.33%;}
