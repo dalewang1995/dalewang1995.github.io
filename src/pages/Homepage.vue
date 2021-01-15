@@ -19,8 +19,8 @@
       <ul class="link-content block-item item-margin">
         <div>小鱼的工具箱</div>
         <li @click="linkUrlTranslate">URL 转码</li>
-        <li>URL 转二维码- 开发中</li>
-        <li>开发中</li>
+        <li @click="linkUrlTranslate">URL 转二维码</li>
+        <li>其他功能-开发中</li>
       </ul>
     </div>
 

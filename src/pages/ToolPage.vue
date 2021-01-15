@@ -5,29 +5,26 @@
 
 <template>
   <section class="tool-module">
-    <div>工具箱模块</div>
-    <div class="content">
-        <div class="left">
-            <textarea v-model="textVal" placeholder="请输入需要转码的URL"></textarea>
-        </div>
-        <div class="right">{{resVal}}</div>
+    <h2>小鱼的工具箱</h2>
+    <div class="options-btns">
+        <button class="btn" :class="{'active': activeIndex === 1}" @click="optionsBtn(1)">URL编码</button>
+        <button class="btn" :class="{'active': activeIndex === 2}" @click="optionsBtn(2)">URL转二维码</button>
     </div>
-    <div class="op-con">
-        <button class="btn" @click="urlEcode">编码</button>
-        <button class="btn" @click="urlDecode">解码</button>
-    </div>
+    <component :is='currentCom'></component>
   </section>
 </template>
 
 
-
 <script>
+import UrlTranslate from './UrlTranslate'
+import Qrcode from './Qrcode'
+
 export default {
     name: 'tool',
     data() {
         return {
-            textVal: '',
-            resVal:''
+            currentCom:UrlTranslate,
+            activeIndex:1
         }
     },
     computed: {},
@@ -35,71 +32,44 @@ export default {
     mounted() {},
     filters: {},
     methods: {
-        urlEcode(){
-            this.resVal = encodeURIComponent(this.textVal)
-        },
-        urlDecode(){
-            this.resVal = decodeURIComponent(this.textVal)
+        optionsBtn(type){
+            if(type === 1){
+                this.currentCom = UrlTranslate
+                this.activeIndex = 1
+            }
+            if(type === 2){
+                this.currentCom = Qrcode
+                this.activeIndex = 2
+            }
         }
-
     }
 }
 </script>
 
 <style lang="scss" scoped>
-.tool-module {
-    .content {
-        display: flex;
-        flex-direction: column;
-        // justify-content: center;
-        align-items: center;
-        // margin: 10% 20%;
-        // padding: 0 20%;
+.options-btns {
+    margin-top: 20px;
+    .btn {
+        background-color: #eee;
+        padding: 6.5px 15px; 
+        border:none;
+        border-radius: 3px;
+        transition: all .3s cubic-bezier(.645,.045,.355,1);
 
-        .left,.right {
-            width: 500px;
-            height: 300px;
-            border: 1px solid #ebebeb;
+        &:hover {
+            background-color: #8590a6;
+            color: #fff;
         }
-        .right {
-            font-size: 14px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            padding: 10px;
-            word-break: break-all;
-            line-height: 20px;
-            background-color: #fff;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100%;
-            font-size: 14px;
-            line-height: 20px;
-            border: 1px solid #ebebeb;
-            border-radius: 3px;
-            padding: 10px;
-            resize: none;
-        }
-    }
-    .op-con {
-        .btn {
-            background-color: #eee;
-            padding: 6.5px 15px; 
-            border:none;
-            border-radius: 3px;
-            transition: all .3s cubic-bezier(.645,.045,.355,1);
-
-            &:hover {
-                background-color: #8590a6;
-                color: #fff;
-            }
-            &:first-child {
-                margin-right: 35px;
-            }
+        &:first-child {
+            margin-right: 35px;
         }
 
     }
-
+    .active {
+        background-color: #8590a6;
+        color: #fff;
+    }
 }
+
+
 </style>
