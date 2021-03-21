@@ -5,7 +5,11 @@
     <div class="module-content">
 
     <div class="header">
-    <h1>汪小鱼</h1>
+      <div class="logo-con">
+        <h5 class="name-e" @mouseover="onMouseOver">CoderWang</h5>
+        <div class="blank">|</div>
+        <div class="name-c">汪小鱼</div>
+      </div>
     </div>
 
     <div class="row">
@@ -66,7 +70,8 @@ export default {
       ],
       year:new Date().getFullYear(),
       currentPage: 1,
-      currentRowIndex: -1
+      currentRowIndex: -1,
+      adimateExc: false
     }
   },
 
@@ -80,7 +85,11 @@ export default {
 
   created() {},
 
-  mounted() {},
+  mounted() {
+    this.addSpanTag()
+    this.animationDelay()
+    this.onMouseOver()
+  },
 
   filters: {},
 
@@ -112,7 +121,31 @@ export default {
       this.$router.push({
         path:'/tool'
       })
+    },
+    addSpanTag() {
+      const title = document.querySelector('.name-e');
+      title.innerHTML = title.textContent.replace(/\S/g, '<span class="title-singl">$&</span>');
+    },
+    animationDelay() {
+      document.querySelectorAll('.title-singl').forEach((span, index) => {
+        span.style.setProperty('--delay', `${index * 0.1}s`)
+      })
+    },
+    onMouseOver(){
+      if(this.adimateExc){
+        return
+      }
+      this.adimateExc= true
+      const h5 = document.querySelector('h5');
+      h5.style.setProperty('--animation', 'jump')
+      h5.classList.remove('animate')
+      void h5.offsetHeight
+      h5.classList.add('animate')
+      setTimeout(()=>{
+        this.adimateExc= false
+      },1000)
     }
+    
   }
 }
 </script>
@@ -141,6 +174,49 @@ html {
     background-color: #373d41;
     color: #ffffff;
     padding: 15px;
+    display: flex;
+    justify-content: flex-start;
+
+    .logo-con {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      .name-e {
+        font-family: Helvetica, sans-serif, Arial;
+        font-size: 34px;
+      }
+      .blank {
+        margin: 0 8px;
+        font-weight: 400;
+        font-size: 24px;
+      }
+      .name-c {
+        font-weight: 500;
+        font-family: Helvetica, sans-serif, Arial;
+        font-size: 24px;
+      }
+      h5.animate span {
+        animation-name: var(--animation);
+        animation-duration: .4s;
+        animation-timing-function: ease-in-out;
+        animation-delay: var(--delay);
+      }
+      .title-singl {
+        display: inline-block;
+      }
+      @keyframes jump {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+
+    }
 }
 .menu ul {
     list-style-type: none;
