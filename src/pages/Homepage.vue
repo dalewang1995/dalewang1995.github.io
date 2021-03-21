@@ -95,11 +95,9 @@ export default {
 
   methods: {
     handleSizeChange() {
-      // console.log(`每页 ${val} 条`)
     },
     handleCurrentChange(val) {
       this.currentPage = val
-      // console.log(`当前页: ${val}`)
     },
     /* ----------------------------On Click Event---------------------------- */
     linkBlog(){

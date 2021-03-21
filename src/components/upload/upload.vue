@@ -56,17 +56,12 @@
         this.$refs.upload.submit();
       },
       handleRemove(file, fileList) {
-        // console.log(file, fileList);
       },
       handlePreview(file) {
-        // console.log(file);
       },
       handleBeforeUpload(file){
-        // console.log('handleBeforeUpload',file)
       },
       handleOnSuccess(res){
-        // localname: "email-arrow-icon.png"
-        // url: "/upload/appealpic/day_190113/201901130105299069.png"
         if(res.msg && res.msg.url){
           this.successFileList.push(`${this.staticHost}${res.msg.url}`)
         }else{
