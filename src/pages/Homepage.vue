@@ -42,7 +42,7 @@
     </div>
 
     <div class="footer">
-    <p>© 2016-{{year}} coderw.cn 版权所有  &nbsp;<a class="link" href="http://www.beian.miit.gov.cn/state/outPortal/loginPortal.action">辽ICP备16009639号</a></p>
+    <p>© 2016-{{year}} coderw.cn 版权所有  &nbsp;<a class="link" href="https://beian.miit.gov.cn/#/Integrated/index">辽ICP备16009639号</a></p>
     </div>
 
 
