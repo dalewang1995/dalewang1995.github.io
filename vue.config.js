@@ -20,7 +20,7 @@ module.exports = {
   css: {
     loaderOptions: {
       sass: {
-        data: loadGlobalStyles()
+        implementation: require('sass')
       }
     }
   },

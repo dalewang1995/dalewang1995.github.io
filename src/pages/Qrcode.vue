@@ -102,8 +102,8 @@ export default {
     width: 100%;
 
     textarea {
-        width: 100%;
-        min-height: 100px;
+        width: 500px;
+        min-height: 300px;
         margin-top: 20px;
         font-size: 14px;
         line-height: 20px;

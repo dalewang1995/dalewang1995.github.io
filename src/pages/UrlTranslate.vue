@@ -1,9 +1,5 @@
 <!--
  * @Author: 汪小鱼
- * @Date: 2021-01-15 23:13:37
--->
-<!--
- * @Author: 汪小鱼
  * @Date: 2021-01-11 23:38:56
 -->
 
@@ -56,12 +52,14 @@ export default {
     .content {
         display: flex;
         flex-direction: column;
-        // justify-content: center;
         align-items: center;
-        // margin: 10% 20%;
-        // padding: 0 20%;
+        margin-top: 20px;
 
-        .left,.right {
+        .left{
+            width: 500px;
+            height: 300px;
+        }
+        .right {
             width: 500px;
             height: 300px;
             border: 1px solid #ebebeb;
