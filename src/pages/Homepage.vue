@@ -34,9 +34,13 @@
     </div>
 
     <div class="col-3 col-m-12">
-    <div class="aside">
-      <h3>读更多好书，写更酷的代码，做灵魂有趣的人。</h3>
-    </div>
+      <div class="aside">
+        <h3>读更多好书，写更酷的代码，做灵魂有趣的人。</h3>
+      </div>
+      <div class="aside aside-margin">
+        <h3>新年倒计时</h3>
+        <h3>剩余{{betweenDays}}天</h3>
+      </div>
     </div>
 
     </div>
@@ -51,7 +55,7 @@
 </template>
 
 <script>
-
+import dayjs from 'dayjs';
 export default {
   name: 'HomePage',
   data() {
@@ -68,10 +72,10 @@ export default {
           date: '2019-01-15'
         }
       ],
-      year:new Date().getFullYear(),
+      year: new Date().getFullYear(),
       currentPage: 1,
-      currentRowIndex: -1,
-      adimateExc: false
+      adimateExc: false,
+      betweenDays: ''
     }
   },
 
@@ -83,12 +87,18 @@ export default {
 
   watch: {},
 
-  created() {},
+  created() {
+
+  },
 
   mounted() {
     this.addSpanTag()
     this.animationDelay()
     this.onMouseOver()
+
+    const today = dayjs().format('YYYY-MM-DD');
+    const newYear = '2022-01-30';
+    this.betweenDays = dayjs(newYear).diff(today, 'day');
   },
 
   filters: {},
@@ -247,6 +257,11 @@ html {
       box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
     }
 }
+
+.aside-margin {
+  margin-top: 7px;
+}
+
 .link-content li {
   cursor:pointer;
 }
