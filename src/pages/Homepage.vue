@@ -97,7 +97,7 @@ export default {
     this.onMouseOver()
 
     const today = dayjs().format('YYYY-MM-DD');
-    const newYear = '2022-01-30';
+    const newYear = '2023-01-22';
     this.betweenDays = dayjs(newYear).diff(today, 'day');
   },
 
