@@ -97,7 +97,7 @@ export default {
     this.onMouseOver()
 
     const today = dayjs().format('YYYY-MM-DD');
-    const newYear = '2023-01-22';
+    const newYear = '2024-02-09';
     this.betweenDays = dayjs(newYear).diff(today, 'day');
   },
 
@@ -158,7 +158,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="less">
 * {
     box-sizing: border-box;
 }

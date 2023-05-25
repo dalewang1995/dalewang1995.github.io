@@ -9,22 +9,19 @@ const isProd = process.env.NODE_ENV === 'production'
 function resolveRealPath(dir) {
   return path.join(__dirname, dir)
 }
-// function loadGlobalStyles() {
-//   const variables = fs.readFileSync('src/assets/styles/variables.scss', 'utf-8')
-//   const mixins = fs.readFileSync('src/assets/styles/mixins.scss', 'utf-8')
-//   return variables + mixins
-// }
 
 module.exports = {
-  productionSourceMap:false,
+  productionSourceMap: false,
   css: {
     loaderOptions: {
-      sass: {
-        implementation: require('sass')
+      less: {
+        lessOptions: {
+          javascriptEnabled: true
+        }
       }
     }
   },
-  configureWebpack:config => {
+  configureWebpack: config => {
     // plugins: [new BundleAnalyzerPlugin()]
 
     if (isProd) {
@@ -40,9 +37,11 @@ module.exports = {
     }
 
   },
+
   // tweak internal webpack configuration.
   // see https://github.com/vuejs/vue-cli/blob/dev/docs/webpack.md
   chainWebpack: config => {
+
     config.resolve.alias
       .set('vue$', 'vue/dist/vue.esm.js')
       .set('@helper', resolveRealPath('src/helper'))
