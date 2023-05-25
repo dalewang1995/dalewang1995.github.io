@@ -1,0 +1,19 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Open Sans;
+}
+
+*:focus {
+  outline: none !important;
+}
+
+a{
+  color: $brand;
+  text-decoration: none;
+}
+
+body {
+ font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,PingFang SC,Microsoft YaHei,Source Han Sans SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif;
+}
