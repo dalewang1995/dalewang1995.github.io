@@ -9,11 +9,11 @@ const isProd = process.env.NODE_ENV === 'production'
 function resolveRealPath(dir) {
   return path.join(__dirname, dir)
 }
-function loadGlobalStyles() {
-  const variables = fs.readFileSync('src/assets/styles/variables.scss', 'utf-8')
-  const mixins = fs.readFileSync('src/assets/styles/mixins.scss', 'utf-8')
-  return variables + mixins
-}
+// function loadGlobalStyles() {
+//   const variables = fs.readFileSync('src/assets/styles/variables.scss', 'utf-8')
+//   const mixins = fs.readFileSync('src/assets/styles/mixins.scss', 'utf-8')
+//   return variables + mixins
+// }
 
 module.exports = {
   productionSourceMap:false,
