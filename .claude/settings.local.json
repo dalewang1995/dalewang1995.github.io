@@ -12,7 +12,11 @@
       "Bash(curl -sI \"https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js\")",
       "Bash(grep -c '\\\\$store.i18n' /Users/coderw/Desktop/WorkSpace/GitHub/dalewang1995.github.io/docs/index.html /Users/coderw/Desktop/WorkSpace/GitHub/dalewang1995.github.io/docs/url-translate.html /Users/coderw/Desktop/WorkSpace/GitHub/dalewang1995.github.io/docs/qrcode.html)",
       "Bash(node *)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(git *)",
+      "Bash(python3 -c \"from PIL import Image; print\\('pillow available'\\)\")",
+      "Bash(python3 -m pip install Pillow -q)",
+      "Bash(python3 *)"
     ]
   }
 }

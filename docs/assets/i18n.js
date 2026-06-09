@@ -12,6 +12,7 @@ document.addEventListener('alpine:init', () => {
       toolbox: '小鱼的工具箱',
       url_translate: 'URL 转码',
       url_qrcode: 'URL 转二维码',
+      china_universities: '中国本科院校分布',
       more_coming: '更多功能开发中',
       welcome: '欢迎你！',
       welcome_desc: '这里是汪小鱼的空间，一个热爱技术、热爱生活的地方。',
@@ -22,6 +23,8 @@ document.addEventListener('alpine:init', () => {
       quote: '读更多好书，写更酷的代码，做灵魂有趣的人。',
       countdown_title: '新年倒计时',
       countdown_unit: '天',
+      contact: '联系方式',
+      email: '邮箱',
       copyright: '版权所有',
       // URL translate page
       url_tool_title: 'URL 编码 / 解码',
@@ -90,6 +93,7 @@ document.addEventListener('alpine:init', () => {
       toolbox: 'Toolbox',
       url_translate: 'URL Encode/Decode',
       url_qrcode: 'URL to QR Code',
+      china_universities: 'China Universities Map',
       more_coming: 'More coming soon',
       welcome: 'Welcome!',
       welcome_desc: 'This is CoderWang\'s space — a place for tech and life.',
@@ -100,6 +104,8 @@ document.addEventListener('alpine:init', () => {
       quote: 'Read more good books, write cooler code, be an interesting soul.',
       countdown_title: 'New Year Countdown',
       countdown_unit: 'days',
+      contact: 'Contact',
+      email: 'Email',
       copyright: 'All rights reserved',
       // URL translate page
       url_tool_title: 'URL Encode / Decode',

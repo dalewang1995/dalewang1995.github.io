@@ -7,7 +7,8 @@
   <meta name="description" content="开发者在线工具箱 - JSON格式化校验、Base64编解码、时间戳转换、UUID生成器，免费、快速、无需注册。">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://coderw.cn/dev-tools.html">
-  <link rel="icon" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
   <meta property="og:title" content="开发者工具箱 - 汪小鱼">
   <meta property="og:description" content="JSON格式化、Base64编解码、时间戳转换、UUID生成器。">
@@ -67,11 +68,11 @@
 </head>
 <body class="bg-surface dark:bg-slate-900 font-sans min-h-screen antialiased text-gray-800 dark:text-slate-200 transition-colors">
 
-  <div x-data="devTools" class="min-h-screen flex flex-col page-enter">
+  <div x-data="devTools" class="h-screen flex flex-col overflow-hidden page-enter">
 
     <!-- ===== NAV BAR ===== -->
     <nav class="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
-      <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <a href="index.html" class="text-sm text-gray-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-1 shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -92,7 +93,7 @@
 
     <!-- ===== TAB BAR ===== -->
     <div class="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
-      <div class="max-w-5xl mx-auto px-4 flex overflow-x-auto">
+      <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto">
         <button @click="tab='json'" :class="tab==='json' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'"
                 class="px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap" x-text="$store.i18n.t('tab_json')"></button>
         <button @click="tab='base64'" :class="tab==='base64' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'"
@@ -105,7 +106,7 @@
     </div>
 
     <!-- ===== TAB CONTENT ===== -->
-    <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 overflow-y-auto">
 
       <!-- ==================== JSON Tab ==================== -->
       <div x-show="tab==='json'" x-transition.opacity class="space-y-4">

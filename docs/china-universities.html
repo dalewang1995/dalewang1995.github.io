@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国本科院校分布地图 - 汪小鱼</title>
+  <meta name="description" content="中国本科以上院校动态分布地图，点击省份查看高校数量及详细名单。">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://coderw.cn/china-universities.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme');
+      if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary:  '#4a6cf7',
+            dark:     '#1a1a2e',
+            surface:  '#f0f2f5',
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/echarts/6.0.0/echarts.min.js"
+          onerror="var s=document.createElement('script');s.src='https://registry.npmmirror.com/echarts/5.5.0/files/dist/echarts.min.js';document.head.appendChild(s);"></script>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #map-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Top bar overlay */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(26,26,46,0.95) 60%, rgba(26,26,46,0) 100%);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .top-bar > * {
+      pointer-events: auto;
+    }
+
+    /* Theme toggle btn */
+    .theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .theme-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-color: rgba(255,255,255,0.3);
+    }
+    .theme-btn svg { width: 16px; height: 16px; }
+
+    /* Stats bar overlay */
+    .stats-overlay {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 10px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+    }
+    html.dark .stats-overlay {
+      background: rgba(15,23,42,0.92);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Detail panel overlay */
+    .detail-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 380px;
+      max-width: 90vw;
+      height: 100vh;
+      z-index: 20;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      box-shadow: -4px 0 30px rgba(0,0,0,0.1);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    html.dark .detail-overlay {
+      background: rgba(15,23,42,0.96);
+      box-shadow: -4px 0 30px rgba(0,0,0,0.5);
+    }
+    .detail-overlay.open {
+      transform: translateX(0);
+    }
+
+    .detail-list::-webkit-scrollbar { width: 4px; }
+    .detail-list::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 2px; }
+    html.dark .detail-list::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* Legend inside stats bar */
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* Close btn for mobile panel */
+    .panel-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-gray-800 dark:text-slate-200">
+
+  <!-- Map Container - full viewport -->
+  <div id="map-container"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="flex items-center gap-3">
+      <button id="backBtn" onclick="backToNational()" class="text-white hover:text-blue-400 transition-colors flex items-center gap-1" style="display:none">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <span class="text-sm font-medium">全国</span>
+      </button>
+      <a href="index.html" class="text-lg font-bold text-white hover:text-blue-400 transition-colors tracking-tight">CoderWang</a>
+      <span class="text-lg font-light text-gray-500">|</span>
+      <span class="text-sm font-medium text-gray-300 hidden sm:inline" id="currentViewLabel">中国本科院校分布</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" class="theme-btn" title="切换主题">
+        <svg class="light-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="dark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      </button>
+      <a href="index.html" class="hidden sm:inline text-xs text-gray-400 hover:text-white transition-colors ml-1">返回首页</a>
+    </div>
+  </div>
+
+  <!-- Bottom Stats Bar -->
+  <div class="stats-overlay" id="statsBar">
+    <span class="text-gray-500 dark:text-slate-400 text-xs">全国本科院校</span>
+    <span class="text-xl font-bold text-primary" id="totalBadge">0</span>
+    <span class="text-gray-400 dark:text-slate-500 text-xs">所</span>
+    <span class="text-gray-300 dark:text-slate-600">|</span>
+    <span class="legend-dot" style="background:#dbeafe"></span>
+    <span class="legend-dot" style="background:#93c5fd"></span>
+    <span class="legend-dot" style="background:#60a5fa"></span>
+    <span class="legend-dot" style="background:#3b82f6"></span>
+    <span class="legend-dot" style="background:#2563eb"></span>
+    <span class="text-gray-400 dark:text-slate-500 text-xs ml-1">少 → 多</span>
+  </div>
+
+  <!-- Detail Panel -->
+  <div class="detail-overlay" id="detailPanel">
+    <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between shrink-0">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300">
+        <span id="panelTitle">点击地图省份查看详情</span>
+      </h2>
+      <button onclick="closePanel()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors text-lg leading-none">&times;</button>
+    </div>
+
+    <!-- Province stats -->
+    <div id="panelStats" class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 shrink-0" style="display:none">
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-bold text-primary" id="panelCount">0</span>
+        <span class="text-sm text-gray-400 dark:text-slate-500">所本科院校</span>
+      </div>
+      <div class="mt-3 w-full bg-gray-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+        <div class="bg-primary h-full rounded-full transition-all duration-500" id="panelProgress" style="width:0%"></div>
+      </div>
+      <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">
+        占全国本科院校 <span id="panelPercent">0</span>%
+      </p>
+    </div>
+
+    <!-- University list -->
+    <div id="panelList" class="detail-list overflow-y-auto flex-1" style="display:none"></div>
+
+    <!-- Empty state -->
+    <div id="panelEmpty" class="flex-1 flex items-center justify-center">
+      <div class="text-center px-6">
+        <div class="text-5xl mb-4 opacity-30">🗺️</div>
+        <p class="text-sm text-gray-400 dark:text-slate-500 leading-relaxed">
+          点击地图上的省份<br>查看该地区本科院校详细信息
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== University Data =====
+    var UNIVERSITY_DATA = {
+      '北京市': { universities: [
+        '清华大学','北京大学','中国人民大学','北京航空航天大学','北京理工大学','北京师范大学','中国农业大学','中央民族大学',
+        '北京交通大学','北京工业大学','北京科技大学','北京化工大学','北京邮电大学','北京林业大学','北京协和医学院','北京中医药大学',
+        '北京外国语大学','中国传媒大学','中央财经大学','对外经济贸易大学','外交学院','中国人民公安大学','北京体育大学',
+        '中央音乐学院','中国音乐学院','中央美术学院','中央戏剧学院','中国政法大学','华北电力大学','中国矿业大学(北京)',
+        '中国石油大学(北京)','中国地质大学(北京)','首都师范大学','首都医科大学','北京语言大学','北京工商大学','北京建筑大学',
+        '北京信息科技大学','北京联合大学','北京服装学院','北京印刷学院','北京石油化工学院','北京农学院','首都体育学院',
+        '北京第二外国语学院','北京物资学院','中国青年政治学院','中国科学院大学','中国社会科学院大学','北京电子科技学院',
+        '北京城市学院','首都经济贸易大学','国际关系学院','中国消防救援学院','北京警察学院','中华女子学院','中国劳动关系学院',
+        '北京电影学院','中国戏曲学院','北京舞蹈学院'
+      ]},
+      '天津市': { universities: [
+        '南开大学','天津大学','天津医科大学','天津科技大学','天津工业大学','天津理工大学','天津师范大学',
+        '天津财经大学','天津外国语大学','天津商业大学','天津体育学院','天津音乐学院','天津美术学院',
+        '中国民航大学','天津中医药大学','天津城建大学','天津农学院','天津职业技术师范大学','河北工业大学'
+      ]},
+      '河北省': { universities: [
+        '河北大学','河北工业大学','燕山大学','河北师范大学','河北医科大学','河北农业大学','河北科技大学',
+        '华北理工大学','石家庄铁道大学','河北经贸大学','河北工程大学','河北地质大学','河北科技师范学院',
+        '承德医学院','河北北方学院','河北建筑工程学院','唐山师范学院','廊坊师范学院','邯郸学院',
+        '邢台学院','衡水学院','保定学院','河北民族师范学院','沧州师范学院','河北金融学院','北华航天工业学院',
+        '河北科技学院','河北传媒学院','河北美术学院','河北外国语学院','燕京理工学院','华北科技学院',
+        '防灾科技学院','中央司法警官学院','中国人民警察大学','河北环境工程学院','河北水利电力学院',
+        '河北中医学院','张家口学院','河北体育学院','河北工业职业技术大学','河北石油职业技术大学'
+      ]},
+      '山西省': { universities: [
+        '山西大学','太原理工大学','中北大学','山西医科大学','山西师范大学','山西财经大学','山西农业大学',
+        '太原科技大学','山西中医药大学','长治医学院','运城学院','忻州师范学院','晋中学院',
+        '长治学院','吕梁学院','太原师范学院','山西大同大学','太原工业学院','山西工商学院',
+        '山西传媒学院','山西工程技术学院','山西能源学院','太原学院','山西警察学院','山西工程科技职业大学','山西科技学院'
+      ]},
+      '内蒙古自治区': { universities: [
+        '内蒙古大学','内蒙古科技大学','内蒙古工业大学','内蒙古师范大学','内蒙古农业大学','内蒙古民族大学',
+        '内蒙古医科大学','内蒙古财经大学','赤峰学院','呼伦贝尔学院','集宁师范学院',
+        '河套学院','呼和浩特民族学院','鄂尔多斯应用技术学院'
+      ]},
+      '辽宁省': { universities: [
+        '大连理工大学','东北大学','大连海事大学','辽宁大学','沈阳农业大学','沈阳工业大学','沈阳药科大学',
+        '东北财经大学','中国医科大学','辽宁师范大学','沈阳师范大学','大连医科大学','大连外国语大学',
+        '大连民族大学','辽宁工程技术大学','沈阳建筑大学','辽宁科技大学','辽宁石油化工大学',
+        '大连交通大学','大连工业大学','沈阳航空航天大学','沈阳理工大学','辽宁工业大学','沈阳化工大学',
+        '大连海洋大学','渤海大学','辽东学院','辽宁科技学院','营口理工学院','鞍山师范学院',
+        '沈阳体育学院','沈阳音乐学院','鲁迅美术学院','大连大学','辽宁中医药大学','沈阳大学',
+        '锦州医科大学','沈阳工程学院','辽宁何氏医学院','辽宁对外经贸学院','大连财经学院',
+        '辽宁传媒学院','大连艺术学院','沈阳城市学院','辽宁理工职业大学'
+      ]},
+      '吉林省': { universities: [
+        '吉林大学','东北师范大学','延边大学','长春理工大学','吉林农业大学','东北电力大学',
+        '吉林师范大学','长春工业大学','吉林财经大学','吉林建筑大学','长春中医药大学',
+        '北华大学','长春大学','吉林化工学院','通化师范学院','吉林工程技术师范学院',
+        '白城师范学院','吉林体育学院','吉林艺术学院','吉林动画学院','长春工程学院',
+        '吉林医药学院','吉林外国语大学','吉林工商学院','长春光华学院','长春建筑学院'
+      ]},
+      '黑龙江省': { universities: [
+        '哈尔滨工业大学','哈尔滨工程大学','东北林业大学','东北农业大学','黑龙江大学','哈尔滨医科大学',
+        '哈尔滨理工大学','哈尔滨师范大学','东北石油大学','黑龙江中医药大学','齐齐哈尔大学',
+        '佳木斯大学','黑龙江八一农垦大学','哈尔滨商业大学','牡丹江医学院','牡丹江师范学院',
+        '哈尔滨学院','大庆师范学院','黑河学院','绥化学院','黑龙江工程学院','黑龙江科技大学',
+        '哈尔滨金融学院','齐齐哈尔医学院','哈尔滨体育学院','黑龙江东方学院','哈尔滨剑桥学院'
+      ]},
+      '上海市': { universities: [
+        '复旦大学','上海交通大学','同济大学','华东师范大学','华东理工大学','上海财经大学','东华大学',
+        '上海大学','上海外国语大学','华东政法大学','上海理工大学','上海师范大学','上海海事大学',
+        '上海海洋大学','上海中医药大学','上海对外经贸大学','上海工程技术大学','上海电力大学',
+        '上海应用技术大学','上海第二工业大学','上海立信会计金融学院','上海电机学院',
+        '上海政法学院','上海体育学院','上海音乐学院','上海戏剧学院','上海科技大学',
+        '上海健康医学院','上海商学院','上海公安学院','上海视觉艺术学院','上海杉达学院',
+        '上海建桥学院','上海师范大学天华学院','上海外国语大学贤达经济人文学院'
+      ]},
+      '江苏省': { universities: [
+        '南京大学','东南大学','南京航空航天大学','南京理工大学','苏州大学','南京师范大学','河海大学',
+        '中国矿业大学','江南大学','南京农业大学','中国药科大学','南京医科大学','南京工业大学',
+        '南京邮电大学','南京林业大学','南京信息工程大学','南京中医药大学','江苏大学','扬州大学',
+        '南通大学','江苏师范大学','南京财经大学','南京审计大学','常州大学','苏州科技大学',
+        '江苏科技大学','徐州医科大学','南京艺术学院','南京体育学院','盐城工学院','盐城师范学院',
+        '淮阴师范学院','江苏理工学院','淮阴工学院','常熟理工学院','南京工程学院','徐州工程学院',
+        '金陵科技学院','江苏海洋大学','常州工学院','泰州学院','宿迁学院','无锡学院',
+        '南京晓庄学院','江苏第二师范学院','南京特殊教育师范学院','西交利物浦大学','昆山杜克大学',
+        '三江学院','南通理工学院','无锡太湖学院','南京森林警察学院','陆军工程大学','陆军指挥学院'
+      ]},
+      '浙江省': { universities: [
+        '浙江大学','浙江工业大学','浙江师范大学','宁波大学','杭州电子科技大学','浙江理工大学',
+        '浙江工商大学','浙江财经大学','中国美术学院','温州医科大学','浙江农林大学','浙江中医药大学',
+        '杭州师范大学','温州大学','中国计量大学','浙江海洋大学','湖州师范学院','绍兴文理学院',
+        '台州学院','嘉兴学院','丽水学院','衢州学院','万里学院','浙江科技学院','宁波工程学院',
+        '浙江水利水电学院','浙江外国语学院','浙江越秀外国语学院','浙大城市学院','浙大宁波理工学院',
+        '温州商学院','浙江树人学院','杭州医学院','浙江传媒学院','浙江音乐学院','公安海警学院',
+        '宁波财经学院','浙江警察学院','西湖大学','浙江药科职业大学'
+      ]},
+      '安徽省': { universities: [
+        '中国科学技术大学','合肥工业大学','安徽大学','安徽师范大学','安徽医科大学','安徽农业大学',
+        '安徽工业大学','安徽理工大学','安徽财经大学','安徽建筑大学','安徽工程大学','安徽中医药大学',
+        '淮北师范大学','安庆师范大学','阜阳师范大学','合肥学院','皖南医学院','蚌埠医学院',
+        '宿州学院','滁州学院','皖西学院','巢湖学院','淮南师范学院','铜陵学院',
+        '池州学院','黄山学院','蚌埠学院','亳州学院','安徽科技学院','合肥师范学院',
+        '安徽艺术学院','安徽三联学院','安徽新华学院','安徽文达信息工程学院','陆军炮兵防空兵学院'
+      ]},
+      '福建省': { universities: [
+        '厦门大学','福州大学','福建师范大学','华侨大学','福建农林大学','集美大学','福建医科大学',
+        '福建中医药大学','闽江学院','泉州师范学院','闽南师范大学','厦门理工学院',
+        '三明学院','龙岩学院','莆田学院','武夷学院','宁德师范学院','福建工程学院',
+        '福建江夏学院','福建技术师范学院','厦门医学院','福建警察学院','仰恩大学',
+        '阳光学院','福州外语外贸学院','厦门工学院','泉州信息工程学院','福州理工学院'
+      ]},
+      '江西省': { universities: [
+        '南昌大学','江西师范大学','江西财经大学','江西农业大学','华东交通大学','东华理工大学',
+        '江西理工大学','南昌航空大学','江西中医药大学','景德镇陶瓷大学','赣南师范大学',
+        '江西科技师范大学','赣南医学院','井冈山大学','宜春学院','上饶师范学院',
+        '九江学院','南昌工程学院','萍乡学院','新余学院','豫章师范学院',
+        '南昌理工学院','江西科技学院','江西服装学院','江西工程学院','江西应用科技学院',
+        '南昌职业大学','江西软件职业技术大学'
+      ]},
+      '山东省': { universities: [
+        '山东大学','中国海洋大学','中国石油大学(华东)','山东师范大学','青岛大学','山东科技大学',
+        '山东农业大学','青岛科技大学','济南大学','山东理工大学','曲阜师范大学','烟台大学',
+        '青岛理工大学','山东建筑大学','齐鲁工业大学','山东财经大学','山东第一医科大学',
+        '鲁东大学','聊城大学','临沂大学','青岛农业大学','山东中医药大学','潍坊医学院',
+        '滨州医学院','济宁医学院','山东工商学院','山东交通学院','山东政法学院',
+        '德州学院','滨州学院','泰山学院','济宁学院','菏泽学院','枣庄学院',
+        '潍坊学院','山东体育学院','山东艺术学院','山东工艺美术学院','山东警察学院',
+        '烟台南山学院','青岛滨海学院','山东英才学院','山东现代学院','山东协和学院',
+        '齐鲁理工学院','青岛黄海学院','山东华宇工学院','海军航空大学','海军潜艇学院'
+      ]},
+      '河南省': { universities: [
+        '郑州大学','河南大学','河南师范大学','河南科技大学','河南理工大学','河南工业大学',
+        '河南农业大学','华北水利水电大学','河南财经政法大学','河南中医药大学','郑州轻工业大学',
+        '信阳师范大学','新乡医学院','中原工学院','郑州航空工业管理学院','洛阳师范学院',
+        '南阳师范学院','安阳师范学院','商丘师范学院','周口师范学院','许昌学院',
+        '河南科技学院','黄淮学院','平顶山学院','洛阳理工学院','河南工程学院',
+        '郑州工程技术学院','南阳理工学院','河南城建学院','河南牧业经济学院','新乡学院',
+        '郑州师范学院','河南工学院','河南财政金融学院','安阳工学院','信阳农林学院',
+        '郑州警察学院','铁道警察学院','郑州西亚斯学院','黄河科技学院','郑州科技学院',
+        '郑州工商学院','商丘工学院','信阳学院','安阳学院','郑州工业应用技术学院','战略支援部队信息工程大学'
+      ]},
+      '湖北省': { universities: [
+        '武汉大学','华中科技大学','武汉理工大学','华中师范大学','中国地质大学(武汉)','华中农业大学',
+        '中南财经政法大学','武汉科技大学','湖北大学','长江大学','三峡大学','湖北工业大学',
+        '武汉工程大学','武汉纺织大学','湖北中医药大学','武汉轻工大学','中南民族大学',
+        '湖北师范大学','湖北民族大学','湖北经济学院','江汉大学','黄冈师范学院',
+        '湖北文理学院','湖北工程学院','湖北科技学院','湖北汽车工业学院','湖北第二师范学院',
+        '武汉体育学院','湖北美术学院','武汉音乐学院','湖北医药学院','荆楚理工学院',
+        '汉江师范学院','武汉商学院','武汉生物工程学院','武汉东湖学院','武昌首义学院',
+        '汉口学院','文华学院','武汉工商学院','海军工程大学','空军预警学院'
+      ]},
+      '湖南省': { universities: [
+        '国防科技大学','中南大学','湖南大学','湖南师范大学','湘潭大学','长沙理工大学',
+        '湖南科技大学','湖南农业大学','南华大学','中南林业科技大学','湖南中医药大学',
+        '吉首大学','湖南工业大学','湖南工商大学','湖南理工学院','衡阳师范学院',
+        '湖南文理学院','湖南工程学院','湖南城市学院','邵阳学院','怀化学院',
+        '湖南科技学院','湘南学院','湖南第一师范学院','湖南人文科技学院','长沙学院',
+        '湖南女子学院','湖南财政经济学院','长沙医学院','湖南涉外经济学院','长沙师范学院',
+        '湖南警察学院','湖南信息学院','湖南交通工程学院','湖南应用技术学院'
+      ]},
+      '广东省': { universities: [
+        '中山大学','华南理工大学','暨南大学','华南师范大学','深圳大学','南方科技大学','华南农业大学',
+        '广东工业大学','广州大学','广东外语外贸大学','广州医科大学','广州中医药大学','汕头大学',
+        '南方医科大学','广东财经大学','广东海洋大学','广东技术师范大学','五邑大学','东莞理工学院',
+        '广东石油化工学院','仲恺农业工程学院','广东药科大学','广东医科大学','惠州学院',
+        '肇庆学院','韩山师范学院','嘉应学院','岭南师范学院','广州体育学院','广州美术学院',
+        '星海音乐学院','广东警官学院','佛山科学技术学院','广东金融学院','广东第二师范学院',
+        '广东培正学院','广东白云学院','广东科技学院','广州理工学院','广州航海学院',
+        '深圳技术大学','北京师范大学-香港浸会大学联合国际学院','香港中文大学(深圳)',
+        '深圳北理莫斯科大学','广东以色列理工学院','北京理工大学(珠海)'
+      ]},
+      '广西壮族自治区': { universities: [
+        '广西大学','广西师范大学','广西医科大学','桂林电子科技大学','广西民族大学','桂林理工大学',
+        '广西中医药大学','广西科技大学','南宁师范大学','广西艺术学院','广西财经学院',
+        '右江民族医学院','桂林医学院','玉林师范学院','河池学院','百色学院',
+        '梧州学院','贺州学院','钦州学院','广西民族师范学院','广西科技师范学院',
+        '广西警察学院','桂林旅游学院','广西外国语学院','南宁学院','北海艺术设计学院',
+        '广西职业师范学院','桂林航天工业学院','广西农业职业技术大学'
+      ]},
+      '海南省': { universities: [
+        '海南大学','海南师范大学','海南医科大学','海南热带海洋学院','琼台师范学院',
+        '三亚学院','海口经济学院','海南科技职业大学'
+      ]},
+      '重庆市': { universities: [
+        '重庆大学','西南大学','西南政法大学','重庆医科大学','重庆邮电大学','重庆交通大学',
+        '重庆师范大学','重庆工商大学','重庆理工大学','四川外国语大学','四川美术学院',
+        '重庆科技学院','重庆文理学院','长江师范学院','重庆三峡学院','重庆第二师范学院',
+        '重庆警察学院','重庆财经学院','重庆人文科技学院','重庆工程学院','重庆机电职业技术大学',
+        '重庆外语外事学院','重庆对外经贸学院','重庆工商大学派斯学院','陆军军医大学','重庆中医药学院'
+      ]},
+      '四川省': { universities: [
+        '四川大学','电子科技大学','西南交通大学','西南财经大学','四川农业大学','成都理工大学',
+        '西南科技大学','四川师范大学','西南石油大学','西华大学','西南民族大学','成都中医药大学',
+        '西南医科大学','川北医学院','成都信息工程大学','四川轻化工大学','西华师范大学',
+        '绵阳师范学院','内江师范学院','乐山师范学院','成都体育学院','四川音乐学院',
+        '成都大学','攀枝花学院','宜宾学院','西昌学院','四川文理学院','四川民族学院',
+        '成都师范学院','成都医学院','成都工业学院','四川旅游学院','阿坝师范学院',
+        '四川警察学院','四川工商学院','四川传媒学院','成都东软学院','吉利学院','四川电影电视学院'
+      ]},
+      '贵州省': { universities: [
+        '贵州大学','贵州师范大学','贵州医科大学','贵州财经大学','贵州民族大学','遵义医科大学',
+        '贵州中医药大学','贵州师范学院','贵阳学院','遵义师范学院','黔南民族师范学院',
+        '兴义民族师范学院','六盘水师范学院','安顺学院','凯里学院','铜仁学院',
+        '贵州工程应用技术学院','贵州理工学院','贵州商学院','贵州警察学院',
+        '茅台学院','贵阳信息科技学院','贵州中医药大学时珍学院','遵义医科大学医学与科技学院'
+      ]},
+      '云南省': { universities: [
+        '云南大学','昆明理工大学','云南师范大学','云南农业大学','云南财经大学','云南民族大学',
+        '昆明医科大学','西南林业大学','大理大学','云南中医药大学','曲靖师范学院',
+        '玉溪师范学院','楚雄师范学院','红河学院','保山学院','文山学院','昭通学院',
+        '普洱学院','滇西科技师范学院','昆明学院','云南艺术学院','云南警官学院',
+        '云南工商学院','云南经济管理学院','滇西应用技术大学','丽江师范学院'
+      ]},
+      '西藏自治区': { universities: [
+        '西藏大学','西藏民族大学','西藏农牧学院','西藏藏医药大学'
+      ]},
+      '陕西省': { universities: [
+        '西安交通大学','西北工业大学','西北农林科技大学','西安电子科技大学','陕西师范大学',
+        '长安大学','西北大学','西安理工大学','西安建筑科技大学','西安科技大学',
+        '陕西科技大学','西安石油大学','西安工业大学','西安工程大学','延安大学',
+        '西北政法大学','西安外国语大学','西安邮电大学','西安财经大学','陕西理工大学',
+        '宝鸡文理学院','咸阳师范学院','渭南师范学院','陕西中医药大学','西安医学院',
+        '西安文理学院','榆林学院','安康学院','商洛学院','西安体育学院','西安音乐学院',
+        '西安美术学院','西安航空学院','陕西学前师范学院','西安翻译学院','西京学院',
+        '西安培华学院','西安欧亚学院','西安外事学院','西安思源学院','空军军医大学','火箭军工程大学'
+      ]},
+      '甘肃省': { universities: [
+        '兰州大学','西北师范大学','兰州理工大学','兰州交通大学','甘肃农业大学',
+        '西北民族大学','兰州财经大学','甘肃中医药大学','天水师范学院',
+        '陇东学院','河西学院','甘肃民族师范学院','兰州城市学院','兰州文理学院',
+        '甘肃政法大学','兰州工业学院','兰州资源环境职业技术大学','兰州石化职业技术大学'
+      ]},
+      '青海省': { universities: [
+        '青海大学','青海师范大学','青海民族大学','青海理工学院'
+      ]},
+      '宁夏回族自治区': { universities: [
+        '宁夏大学','宁夏医科大学','北方民族大学','宁夏师范学院','宁夏理工学院',
+        '银川能源学院','银川科技学院','宁夏大学新华学院'
+      ]},
+      '新疆维吾尔自治区': { universities: [
+        '新疆大学','石河子大学','新疆师范大学','新疆医科大学','新疆农业大学',
+        '塔里木大学','新疆财经大学','昌吉学院','伊犁师范大学','喀什大学',
+        '新疆工程学院','新疆艺术学院','新疆理工学院','新疆科技学院',
+        '新疆政法学院','新疆第二医学院','新疆警察学院','中国石油大学(北京)克拉玛依校区'
+      ]},
+      '台湾省': { universities: [
+        '台湾大学','清华大学(台湾)','成功大学','交通大学(台湾)','政治大学','中山大学(台湾)',
+        '台湾科技大学','台北科技大学','中兴大学','中正大学','台湾师范大学',
+        '辅仁大学','东吴大学','淡江大学','东海大学','逢甲大学','元智大学'
+      ]},
+      '香港特别行政区': { universities: [
+        '香港大学','香港中文大学','香港科技大学','香港理工大学','香港城市大学',
+        '香港浸会大学','岭南大学','香港教育大学','香港树仁大学'
+      ]},
+      '澳门特别行政区': { universities: [
+        '澳门大学','澳门科技大学','澳门理工大学','澳门城市大学','圣若瑟大学'
+      ]}
+    };
+
+    // Province name → adcode mapping for DataV geo JSON
+    var ADCCODE_MAP = {
+      '北京市': 110000, '天津市': 120000, '河北省': 130000, '山西省': 140000,
+      '内蒙古自治区': 150000, '辽宁省': 210000, '吉林省': 220000, '黑龙江省': 230000,
+      '上海市': 310000, '江苏省': 320000, '浙江省': 330000, '安徽省': 340000,
+      '福建省': 350000, '江西省': 360000, '山东省': 370000, '河南省': 410000,
+      '湖北省': 420000, '湖南省': 430000, '广东省': 440000, '广西壮族自治区': 450000,
+      '海南省': 460000, '重庆市': 500000, '四川省': 510000, '贵州省': 520000,
+      '云南省': 530000, '西藏自治区': 540000, '陕西省': 610000, '甘肃省': 620000,
+      '青海省': 630000, '宁夏回族自治区': 640000, '新疆维吾尔自治区': 650000,
+      '台湾省': 710000, '香港特别行政区': 810000, '澳门特别行政区': 820000
+    };
+
+    // City-level university mapping for drill-down (key provinces have detailed data)
+    var CITY_UNIVERSITY_DATA = {
+      '北京市': {
+        110101: { name: '东城区', list: ['中央戏剧学院','北京协和医学院'] },
+        110102: { name: '西城区', list: ['中国人民公安大学','北京电影学院','外交学院'] },
+        110105: { name: '朝阳区', list: ['中国传媒大学','对外经济贸易大学','中央美术学院','北京工业大学','北京化工大学','北京服装学院','中华女子学院'] },
+        110106: { name: '丰台区', list: ['首都医科大学','首都经济贸易大学','中国戏曲学院','北京电子科技学院'] },
+        110107: { name: '石景山区', list: ['北方工业大学','中国科学院大学'] },
+        110108: { name: '海淀区', list: ['清华大学','北京大学','中国人民大学','北京航空航天大学','北京理工大学','北京师范大学','中国农业大学','中央民族大学','北京交通大学','北京科技大学','北京邮电大学','北京林业大学','北京外国语大学','中央财经大学','中国政法大学','中国矿业大学(北京)','中国地质大学(北京)','首都师范大学','北京语言大学','北京信息科技大学','北京舞蹈学院','国际关系学院','中国劳动关系学院','北京电影学院'] },
+        110114: { name: '昌平区', list: ['中国石油大学(北京)','中国政法大学','华北电力大学','北京农学院','中国消防救援学院','北京警察学院'] },
+        110115: { name: '大兴区', list: ['北京印刷学院','北京石油化工学院','北京建筑大学'] },
+        110116: { name: '怀柔区', list: ['中国科学院大学','北京电影学院怀柔校区'] },
+        110112: { name: '通州区', list: ['北京物资学院','北京工商大学'] },
+        110113: { name: '顺义区', list: ['北京城市学院','首都体育学院'] },
+        110109: { name: '门头沟区', list: [] },
+        110111: { name: '房山区', list: ['北京理工大学良乡校区','中国社会科学院大学','北京工商大学良乡校区'] }
+      },
+      '天津市': {
+        120101: { name: '和平区', list: ['天津医科大学','天津外国语大学'] },
+        120104: { name: '南开区', list: ['南开大学','天津大学','天津中医药大学'] },
+        120103: { name: '河西区', list: ['天津财经大学','天津科技大学','天津体育学院'] },
+        120106: { name: '红桥区', list: ['河北工业大学'] },
+        120110: { name: '东丽区', list: ['中国民航大学'] },
+        120111: { name: '西青区', list: ['天津工业大学','天津师范大学','天津理工大学','天津农学院'] },
+        120116: { name: '滨海新区', list: ['天津科技大学滨海校区'] },
+        120114: { name: '武清区', list: ['天津商业大学'] },
+        120118: { name: '静海区', list: ['天津中医药大学静海校区','天津体育学院静海校区'] }
+      },
+      '上海市': {
+        310101: { name: '黄浦区', list: ['上海交通大学医学院'] },
+        310104: { name: '徐汇区', list: ['上海交通大学','华东理工大学','上海师范大学','上海音乐学院','上海应用技术大学','上海立信会计金融学院'] },
+        310105: { name: '长宁区', list: ['东华大学','上海对外经贸大学','上海工程技术大学'] },
+        310106: { name: '静安区', list: ['上海大学延长校区','上海戏剧学院'] },
+        310107: { name: '普陀区', list: ['华东师范大学','上海政法学院'] },
+        310109: { name: '虹口区', list: ['上海外国语大学','上海财经大学'] },
+        310110: { name: '杨浦区', list: ['复旦大学','同济大学','上海理工大学','上海财经大学','上海体育学院','上海电力大学','上海第二工业大学'] },
+        310112: { name: '闵行区', list: ['上海交通大学闵行校区','华东师范大学闵行校区','上海电机学院'] },
+        310113: { name: '宝山区', list: ['上海大学'] },
+        310115: { name: '浦东新区', list: ['上海科技大学','上海中医药大学','上海海事大学','上海海洋大学','上海建桥学院','上海杉达学院','上海第二工业大学','上海健康医学院','上海公安学院'] },
+        310117: { name: '松江区', list: ['东华大学松江校区','上海外国语大学松江校区','华东政法大学','上海对外经贸大学松江校区','上海工程技术大学松江校区','上海视觉艺术学院','上海立信会计金融学院松江校区'] },
+        310118: { name: '青浦区', list: ['上海政法学院青浦校区'] },
+        310120: { name: '奉贤区', list: ['华东理工大学奉贤校区','上海师范大学奉贤校区','上海应用技术大学奉贤校区','上海商学院'] }
+      },
+      '江苏省': {
+        320100: { name: '南京市', list: ['南京大学','东南大学','南京航空航天大学','南京理工大学','南京师范大学','河海大学','南京农业大学','中国药科大学','南京医科大学','南京工业大学','南京邮电大学','南京林业大学','南京信息工程大学','南京中医药大学','南京财经大学','南京审计大学','南京艺术学院','南京体育学院','南京工程学院','金陵科技学院','南京晓庄学院','江苏第二师范学院','南京特殊教育师范学院','三江学院','陆军工程大学','陆军指挥学院','南京森林警察学院'] },
+        320200: { name: '无锡市', list: ['江南大学','无锡太湖学院','无锡学院'] },
+        320300: { name: '徐州市', list: ['中国矿业大学','徐州医科大学','徐州工程学院','江苏师范大学'] },
+        320400: { name: '常州市', list: ['常州大学','江苏理工学院','常州工学院'] },
+        320500: { name: '苏州市', list: ['苏州大学','苏州科技大学','常熟理工学院','西交利物浦大学','昆山杜克大学'] },
+        320600: { name: '南通市', list: ['南通大学','南通理工学院'] },
+        320700: { name: '连云港市', list: ['江苏海洋大学'] },
+        320800: { name: '淮安市', list: ['淮阴师范学院','淮阴工学院'] },
+        320900: { name: '盐城市', list: ['盐城工学院','盐城师范学院'] },
+        321000: { name: '扬州市', list: ['扬州大学'] },
+        321100: { name: '镇江市', list: ['江苏大学','江苏科技大学'] },
+        321200: { name: '泰州市', list: ['泰州学院'] },
+        321300: { name: '宿迁市', list: ['宿迁学院'] }
+      },
+      '浙江省': {
+        330100: { name: '杭州市', list: ['浙江大学','浙江工业大学','杭州电子科技大学','浙江理工大学','浙江工商大学','浙江财经大学','杭州师范大学','中国计量大学','浙江农林大学','浙江中医药大学','浙江科技学院','浙江外国语学院','浙江越秀外国语学院','浙江树人学院','浙大城市学院','浙江传媒学院','浙江音乐学院','杭州医学院','西湖大学','浙江警察学院'] },
+        330200: { name: '宁波市', list: ['宁波大学','宁波工程学院','浙大宁波理工学院','宁波财经学院','万里学院','公安海警学院','宁波诺丁汉大学'] },
+        330300: { name: '温州市', list: ['温州医科大学','温州大学','温州商学院','温州肯恩大学'] },
+        330400: { name: '嘉兴市', list: ['嘉兴学院'] },
+        330500: { name: '湖州市', list: ['湖州师范学院'] },
+        330600: { name: '绍兴市', list: ['绍兴文理学院'] },
+        330700: { name: '金华市', list: ['浙江师范大学'] },
+        330800: { name: '衢州市', list: ['衢州学院'] },
+        330900: { name: '舟山市', list: ['浙江海洋大学'] },
+        331000: { name: '台州市', list: ['台州学院'] },
+        331100: { name: '丽水市', list: ['丽水学院'] }
+      },
+      '湖北省': {
+        420100: { name: '武汉市', list: ['武汉大学','华中科技大学','武汉理工大学','华中师范大学','中国地质大学(武汉)','华中农业大学','中南财经政法大学','武汉科技大学','湖北大学','湖北工业大学','武汉工程大学','武汉纺织大学','湖北中医药大学','武汉轻工大学','中南民族大学','湖北经济学院','江汉大学','湖北第二师范学院','武汉体育学院','湖北美术学院','武汉音乐学院','武汉生物工程学院','武汉东湖学院','武昌首义学院','汉口学院','文华学院','武汉工商学院','海军工程大学','空军预警学院'] },
+        420300: { name: '十堰市', list: ['湖北汽车工业学院','汉江师范学院','湖北医药学院'] },
+        420500: { name: '宜昌市', list: ['三峡大学'] },
+        420600: { name: '襄阳市', list: ['湖北文理学院'] },
+        421000: { name: '荆州市', list: ['长江大学','荆楚理工学院'] },
+        421100: { name: '黄冈市', list: ['黄冈师范学院'] },
+        421200: { name: '咸宁市', list: ['湖北科技学院'] },
+        422800: { name: '恩施土家族苗族自治州', list: ['湖北民族大学'] },
+        421300: { name: '随州市', list: [] },
+        429004: { name: '仙桃市', list: [] }
+      },
+      '广东省': {
+        440100: { name: '广州市', list: ['中山大学','华南理工大学','暨南大学','华南师范大学','华南农业大学','广东工业大学','广州大学','广东外语外贸大学','广州医科大学','广州中医药大学','南方医科大学','广东财经大学','广东技术师范大学','仲恺农业工程学院','广东药科大学','广东金融学院','星海音乐学院','广州体育学院','广州美术学院','广东第二师范学院','广东警官学院','广东培正学院','广东白云学院','广州理工学院','广州航海学院'] },
+        440300: { name: '深圳市', list: ['深圳大学','南方科技大学','深圳技术大学','香港中文大学(深圳)','深圳北理莫斯科大学'] },
+        440400: { name: '珠海市', list: ['北京师范大学-香港浸会大学联合国际学院','北京理工大学(珠海)'] },
+        440600: { name: '佛山市', list: ['佛山科学技术学院','广东东软学院'] },
+        440500: { name: '汕头市', list: ['汕头大学','广东以色列理工学院'] },
+        440800: { name: '湛江市', list: ['广东海洋大学','广东医科大学湛江校区'] },
+        440900: { name: '茂名市', list: ['广东石油化工学院'] },
+        441300: { name: '惠州市', list: ['惠州学院'] },
+        441900: { name: '东莞市', list: ['东莞理工学院','广东科技学院'] },
+        442000: { name: '中山市', list: ['电子科技大学中山学院'] },
+        440200: { name: '韶关市', list: [] },
+        441200: { name: '肇庆市', list: ['肇庆学院'] },
+        440700: { name: '江门市', list: ['五邑大学'] },
+        441400: { name: '梅州市', list: ['嘉应学院'] },
+        441500: { name: '汕尾市', list: [] }
+      },
+      '陕西省': {
+        610100: { name: '西安市', list: ['西安交通大学','西北工业大学','西北农林科技大学','西安电子科技大学','陕西师范大学','长安大学','西北大学','西安理工大学','西安建筑科技大学','西安科技大学','陕西科技大学','西安石油大学','西安工业大学','西安工程大学','西北政法大学','西安外国语大学','西安邮电大学','西安财经大学','西安医学院','西安文理学院','西安体育学院','西安音乐学院','西安美术学院','西安航空学院','西安翻译学院','西京学院','西安培华学院','西安欧亚学院','西安外事学院','西安思源学院','空军军医大学','火箭军工程大学'] },
+        610300: { name: '宝鸡市', list: ['宝鸡文理学院'] },
+        610400: { name: '咸阳市', list: ['西北农林科技大学','陕西中医药大学','咸阳师范学院'] },
+        610500: { name: '渭南市', list: ['渭南师范学院'] },
+        610600: { name: '延安市', list: ['延安大学'] },
+        610700: { name: '汉中市', list: ['陕西理工大学'] },
+        610800: { name: '榆林市', list: ['榆林学院'] },
+        610900: { name: '安康市', list: ['安康学院'] },
+        611000: { name: '商洛市', list: ['商洛学院'] },
+        611100: { name: '杨凌示范区', list: ['西北农林科技大学'] }
+      }
+    };
+
+    var chartInstance = null;
+    var isDark = document.documentElement.classList.contains('dark');
+    var currentMapName = 'china';     // 'china' or province adcode
+    var currentProvince = null;       // province name when drilled down
+    var currentMapData = null;        // data array for current map
+
+    // Theme icons
+    (function updateThemeIcons() {
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : '';
+      document.querySelector('.dark-icon').style.display = isDark ? '' : 'none';
+    })();
+
+    // ===== Build map data =====
+    var totalCount = 0;
+    var mapData = [];
+    var maxCount = 0;
+    Object.keys(UNIVERSITY_DATA).forEach(function(name) {
+      var count = UNIVERSITY_DATA[name].universities.length;
+      totalCount += count;
+      mapData.push({ name: name, value: count });
+      if (count > maxCount) maxCount = count;
+    });
+    document.getElementById('totalBadge').textContent = totalCount;
+
+    // ===== Build city-level map data for a province =====
+    function buildCityMapData(provinceName) {
+      var cityData = CITY_UNIVERSITY_DATA[provinceName];
+      var result = [];
+      if (!cityData) {
+        // No detailed city data — put all universities as a single province-wide count
+        var all = UNIVERSITY_DATA[provinceName];
+        result.push({ name: provinceName, value: all ? all.universities.length : 0 });
+      } else {
+        Object.keys(cityData).forEach(function(code) {
+          var c = cityData[code];
+          result.push({ name: c.name, value: c.list.length, list: c.list });
+        });
+      }
+      return result;
+    }
+
+    // ===== Create / update chart =====
+    function createChart(mapName, mapDataArr, centerPoint) {
+      var dom = document.getElementById('map-container');
+      if (!dom) return;
+
+      dom.style.width = window.innerWidth + 'px';
+      dom.style.height = window.innerHeight + 'px';
+
+      if (chartInstance && !chartInstance.isDisposed()) {
+        chartInstance.dispose();
+      }
+
+      chartInstance = echarts.init(dom);
+
+      var textColor = isDark ? '#94a3b8' : '#6b7280';
+      var borderColor = isDark ? '#334155' : '#e5e7eb';
+      var dataMax = 0;
+      // Build reliable name→count lookup (not dependent on ECharts data matching)
+      var nameCountMap = {};
+      mapDataArr.forEach(function(d) { nameCountMap[d.name] = d.value; if (d.value > dataMax) dataMax = d.value; });
+
+      // Helper: get count for any area name
+      function getCount(name) {
+        if (nameCountMap.hasOwnProperty(name)) return nameCountMap[name];
+        // Fallback: search CITY_UNIVERSITY_DATA / UNIVERSITY_DATA
+        if (currentProvince) {
+          var cd = CITY_UNIVERSITY_DATA[currentProvince];
+          if (cd) {
+            for (var k in cd) { if (cd[k].name === name) return cd[k].list.length; }
+          }
+          var all = UNIVERSITY_DATA[currentProvince];
+          if (all && name === currentProvince) return all.universities.length;
+        }
+        var ud = UNIVERSITY_DATA[name];
+        if (ud) return ud.universities.length;
+        return 0;
+      }
+
+      var isProvinceMap = mapName !== 'china' && mapDataArr.length > 1;
+
+      var option = {
+        backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.95)',
+          borderColor: borderColor,
+          textStyle: { color: isDark ? '#e2e8f0' : '#1f2937', fontSize: 13 },
+          formatter: function(p) {
+            if (!p.name) return '';
+            var count = getCount(p.name);
+            return '<strong style="font-size:15px">' + p.name + '</strong><br/>'
+              + '<span style="color:#4a6cf7;font-size:22px;font-weight:700">' + count + '</span>'
+              + '<span style="font-size:12px"> 所本科院校</span>';
+          }
+        },
+        visualMap: {
+          min: 0,
+          max: dataMax || 1,
+          left: 16,
+          bottom: 80,
+          calculable: true,
+          inRange: {
+            color: isDark
+              ? ['#1e3a5f', '#1e4d8c', '#2563eb', '#3b82f6', '#60a5fa']
+              : ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb']
+          },
+          textStyle: { color: textColor, fontSize: 11 },
+          itemWidth: 12,
+          itemHeight: 100
+        },
+        series: [{
+          type: 'map',
+          map: mapName,
+          roam: true,
+          scaleLimit: { min: 1, max: 8 },
+          center: centerPoint || (mapName === 'china' ? [105, 36] : undefined),
+          zoom: mapName === 'china' ? 1.2 : undefined,
+          itemStyle: {
+            borderColor: isDark ? '#1e293b' : '#ffffff',
+            borderWidth: 1.5,
+            areaColor: isDark ? '#1e293b' : '#f1f5f9'
+          },
+          emphasis: {
+            label: { show: true, color: '#fff', fontSize: 15, fontWeight: 'bold',
+              textBorderColor: '#1e293b', textBorderWidth: 3,
+              formatter: function(p) { var c = getCount(p.name); return c > 0 ? p.name + ' ' + c : p.name; }
+            },
+            itemStyle: { areaColor: '#fbbf24', borderColor: '#f59e0b', borderWidth: 2, shadowBlur: 20, shadowColor: 'rgba(251,191,36,0.3)' }
+          },
+          label: { show: true, color: textColor, fontSize: isProvinceMap ? 11 : 10, fontWeight: '500',
+            textBorderColor: isDark ? '#0f172a' : '#fff', textBorderWidth: 2,
+            formatter: mapName === 'china' ? '{b}' : function(p) { var c = getCount(p.name); return c > 0 ? p.name + ' ' + c : p.name; }
+          },
+          data: mapDataArr
+        }]
+      };
+
+      // No visualMap for provinces with single entry (no city data)
+      if (mapName !== 'china' && mapDataArr.length <= 1) {
+        delete option.visualMap;
+        option.series[0].zoom = 8;
+      }
+
+      chartInstance.setOption(option);
+
+      chartInstance.off('click');
+      chartInstance.on('click', function(params) {
+        if (!params.name) return;
+
+        if (mapName === 'china') {
+          // National level: drill down to province
+          if (UNIVERSITY_DATA[params.name]) {
+            drillToProvince(params.name);
+          }
+        } else {
+          // Province level: look up city data from our sources (not ECharts binding)
+          var cityList = null;
+          var provData = CITY_UNIVERSITY_DATA[currentProvince];
+          if (provData) {
+            for (var k in provData) {
+              if (provData[k].name === params.name) { cityList = provData[k].list; break; }
+            }
+          }
+          if (cityList && cityList.length > 0) {
+            showCityDetail(params.name, cityList);
+          } else if (cityList && cityList.length === 0) {
+            showCityDetail(params.name, []);
+          } else if (UNIVERSITY_DATA[currentProvince]) {
+            showCityDetail(currentProvince, UNIVERSITY_DATA[currentProvince].universities);
+          }
+        }
+      });
+
+      currentMapName = mapName;
+      currentMapData = mapDataArr;
+    }
+
+    // ===== Drill to province =====
+    function drillToProvince(provinceName) {
+      var adcode = ADCCODE_MAP[provinceName];
+      if (!adcode) return;
+
+      currentProvince = provinceName;
+
+      // Update UI
+      document.getElementById('backBtn').style.display = '';
+      document.getElementById('currentViewLabel').textContent = provinceName;
+
+      // Load province geo JSON on demand
+      var geoUrl = 'https://geo.datav.aliyun.com/areas_v3/bound/' + adcode + '_full.json';
+      fetch(geoUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(geo) {
+          var mapKey = 'province_' + adcode;
+          echarts.registerMap(mapKey, geo);
+          var cityData = buildCityMapData(provinceName);
+          // DataV province geo features use specific center
+          var center = geo.features && geo.features[0] && geo.features[0].properties && geo.features[0].properties.center;
+          createChart(mapKey, cityData, center);
+          updatePanelForProvince(provinceName);
+        })
+        .catch(function(e) {
+          console.warn('Failed to load province geo: ' + e.message);
+          updatePanelForProvince(provinceName);
+        });
+    }
+
+    function backToNational() {
+      currentProvince = null;
+      currentMapName = 'china';
+      document.getElementById('backBtn').style.display = 'none';
+      document.getElementById('currentViewLabel').textContent = '中国本科院校分布';
+      createChart('china', mapData);
+      resetPanel();
+    }
+
+    // ===== Panel helpers =====
+    function updatePanelForProvince(name) {
+      var data = UNIVERSITY_DATA[name];
+      if (!data) return;
+      document.getElementById('panelTitle').textContent = name + ' · 本科院校';
+      document.getElementById('panelCount').textContent = data.universities.length;
+      document.getElementById('panelProgress').style.width = (data.universities.length / totalCount * 100) + '%';
+      document.getElementById('panelPercent').textContent = (data.universities.length / totalCount * 100).toFixed(1);
+      document.getElementById('panelStats').style.display = '';
+      document.getElementById('panelEmpty').style.display = 'none';
+
+      // Build city-grouped list
+      var cityData = CITY_UNIVERSITY_DATA[name];
+      var html = '';
+      if (cityData) {
+        Object.keys(cityData).forEach(function(code) {
+          var c = cityData[code];
+          if (c.list.length === 0) return;
+          html += '<div class="px-5 py-2 text-xs font-semibold text-gray-400 dark:text-slate-500 bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">' + c.name + '（' + c.list.length + '所）</div>';
+          c.list.forEach(function(u, i) {
+            html += '<div class="flex items-center gap-3 px-5 py-2.5 pl-8 border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">'
+              + '<span class="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center shrink-0">' + (i + 1) + '</span>'
+              + '<span class="text-sm text-gray-700 dark:text-slate-300">' + u + '</span></div>';
+          });
+        });
+        // Add unclassified universities (not in city data) under a catch-all
+        var classified = {};
+        Object.keys(cityData).forEach(function(c) { cityData[c].list.forEach(function(u) { classified[u] = true; }); });
+        var unclassified = data.universities.filter(function(u) { return !classified[u]; });
+        if (unclassified.length > 0) {
+          html += '<div class="px-5 py-2 text-xs font-semibold text-gray-400 dark:text-slate-500 bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">其他（' + unclassified.length + '所）</div>';
+          unclassified.forEach(function(u, i) {
+            html += '<div class="flex items-center gap-3 px-5 py-2.5 pl-8 border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">'
+              + '<span class="text-sm text-gray-700 dark:text-slate-300">' + u + '</span></div>';
+          });
+        }
+      } else {
+        data.universities.forEach(function(u, i) {
+          html += '<div class="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">'
+            + '<span class="w-6 h-6 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center shrink-0">' + (i + 1) + '</span>'
+            + '<span class="text-sm text-gray-700 dark:text-slate-300">' + u + '</span></div>';
+        });
+      }
+      document.getElementById('panelList').innerHTML = html;
+      document.getElementById('panelList').style.display = '';
+      document.getElementById('detailPanel').classList.add('open');
+    }
+
+    function showCityDetail(cityName, uniList) {
+      document.getElementById('panelTitle').textContent = cityName + ' · 本科院校';
+      document.getElementById('panelCount').textContent = uniList.length;
+      document.getElementById('panelProgress').style.width = (uniList.length / totalCount * 100) + '%';
+      document.getElementById('panelPercent').textContent = (uniList.length / totalCount * 100).toFixed(1);
+      document.getElementById('panelStats').style.display = '';
+      document.getElementById('panelEmpty').style.display = 'none';
+
+      var html = '';
+      if (uniList.length === 0) {
+        html = '<div class="flex items-center justify-center py-16 text-sm text-gray-400 dark:text-slate-500">该区域暂无本科院校数据</div>';
+      } else {
+        uniList.forEach(function(u, i) {
+          html += '<div class="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-slate-700/50 hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">'
+            + '<span class="w-6 h-6 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-semibold flex items-center justify-center shrink-0">' + (i + 1) + '</span>'
+            + '<span class="text-sm text-gray-700 dark:text-slate-300">' + u + '</span></div>';
+        });
+      }
+      document.getElementById('panelList').innerHTML = html;
+      document.getElementById('panelList').style.display = '';
+      document.getElementById('detailPanel').classList.add('open');
+    }
+
+    function resetPanel() {
+      document.getElementById('panelTitle').textContent = '点击地图省份查看详情';
+      document.getElementById('panelStats').style.display = 'none';
+      document.getElementById('panelList').style.display = 'none';
+      document.getElementById('panelEmpty').style.display = '';
+    }
+
+    function closePanel() {
+      document.getElementById('detailPanel').classList.remove('open');
+    }
+
+    function toggleTheme() {
+      isDark = !isDark;
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', isDark);
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : '';
+      document.querySelector('.dark-icon').style.display = isDark ? '' : 'none';
+      if (chartInstance && !chartInstance.isDisposed()) chartInstance.dispose();
+      chartInstance = null;
+      loadAndInit();
+    }
+
+    // Resize handler
+    window.addEventListener('resize', function() {
+      var dom = document.getElementById('map-container');
+      if (dom) {
+        dom.style.width = window.innerWidth + 'px';
+        dom.style.height = window.innerHeight + 'px';
+      }
+      if (chartInstance && !chartInstance.isDisposed()) {
+        chartInstance.resize();
+      }
+    });
+
+    // ===== Load map & init =====
+    function loadAndInit() {
+      fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+        .then(function(r) { return r.json(); })
+        .then(function(geo) {
+          echarts.registerMap('china', geo);
+        })
+        .catch(function(e) {
+          console.warn('Geo JSON load failed: ' + e.message);
+        })
+        .finally(function() {
+          setTimeout(function() {
+            currentMapName = 'china';
+            currentProvince = null;
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('currentViewLabel').textContent = '中国本科院校分布';
+            createChart('china', mapData);
+            resetPanel();
+          }, 200);
+        });
+    }
+
+    loadAndInit();
+  </script>
+
+</body>
+</html>
